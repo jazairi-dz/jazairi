@@ -110,12 +110,12 @@ footer{padding:30px 0;color:var(--mute);font-size:13px;text-align:center}
 .sb-q{flex:1 1 auto;display:flex;align-items:center}
 .sb-q input{width:100%}
 .sb select{flex:0 0 auto;max-width:170px;cursor:pointer;border-radius:0;border-inline-start:1px solid #dbe3f0;appearance:none;-webkit-appearance:none;padding-left:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%230a1d45' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center}
-.sb select option{color:#0a1d45;background:#fff}
+.sb select option{color:#0a1d45;background:#fff}.sb #maxp{flex:0 0 auto;width:170px;border-radius:0;border-inline-start:1px solid #dbe3f0}
 .sb-go{flex:none;width:64px;border:0;cursor:pointer;background:linear-gradient(135deg,#f7cf6a,#e59f1a);color:#2a1a00;display:grid;place-items:center;padding:0}
 .sb-go:hover{filter:brightness(1.06)}
 .sb-go:focus-visible{outline:3px solid #2de0cb;outline-offset:-3px}
 .sb-go svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
-@media (max-width:600px){.sb{flex-wrap:wrap}.sb-q{order:1;flex:1 1 calc(100% - 64px)}.sb-go{order:2;height:56px}.sb select{order:3;flex:1 1 50%;max-width:none;height:48px;border-top:1px solid #dbe3f0}#wil{border-inline-start:0}}
+@media (max-width:600px){.sb{flex-wrap:wrap}.sb-q{order:1;flex:1 1 calc(100% - 64px)}.sb-go{order:2;height:56px}.sb select{order:3;flex:1 1 50%;max-width:none;height:48px;border-top:1px solid #dbe3f0}.sb #maxp{order:3;flex:1 1 50%;width:auto;max-width:none;height:48px;border-top:1px solid #dbe3f0}#wil{border-inline-start:0}}
 </style>
 </head>
 <body>
@@ -126,7 +126,7 @@ footer{padding:30px 0;color:var(--mute);font-size:13px;text-align:center}
 <div class="sb" role="search">
 <div class="sb-q"><input id="q" type="search" enterkeyhint="search" placeholder="ابحث… مثال: سيارة ديزل في وهران" aria-label="بحث"></div>
 <select id="wil" aria-label="الولاية"></select>
-<select id="maxp" aria-label="السعر الأقصى"><option value="0">كل الأسعار</option><option value="50000">حتى 50,000 دج</option><option value="500000">حتى 500,000 دج</option><option value="5000000">حتى 5 ملايين دج</option></select>
+<input id="maxp" type="text" inputmode="numeric" list="maxl" autocomplete="off" placeholder="السعر الأقصى (دج)" aria-label="السعر الأقصى"><datalist id="maxl"><option value="50000" label="50 ألف دج"></option><option value="100000" label="100 ألف دج"></option><option value="500000" label="500 ألف دج"></option><option value="1000000" label="100 مليون سنتيم"></option><option value="5000000" label="500 مليون سنتيم"></option><option value="10000000" label="1000 مليون سنتيم"></option><option value="50000000" label="5 ملايير سنتيم"></option></datalist>
 <button class="sb-go" id="sbBtn" type="button" aria-label="بحث"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
 </div></div></div></div>
 <div class="ticker" aria-label="أحدث الإعلانات"><span id="tk"></span></div><div class="glow"></div></header>
@@ -231,7 +231,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.cla
 $("dlg").addEventListener("close",function(){if(/^#ad-/.test(location.hash)){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}});
 
 $("wil").onchange=function(){S.w=this.value;render()};
-$("maxp").onchange=function(){S.max=+this.value;render()};
+$("maxp").oninput=function(){S.max=parseInt(String(this.value).replace(/\D/g,""),10)||0;render()};
 $("sort").onchange=function(){S.sort=this.value;render()};
 $("favOnly").onclick=function(){S.favOnly=!S.favOnly;render()};
 function setUser(s){user=s?s.user:null;hdrAv();$("dot").hidden=!user;loadBlk();syncProf();unread();if(!user&&$("profDlg").open)$("profDlg").close()}
@@ -264,7 +264,7 @@ if(r.error)throw r.error;f.reset();$("addDlg").close();toast("تم نشر إعل
 catch(x){toast("تعذر النشر: "+(x.message||"خطأ"),4000)}
 b.disabled=false;b.textContent="انشر الإعلان"};
 
-function setMax(n){var m=$("maxp");if(!n){m.value="0";return}var o=$("cmax");if(!o){o=document.createElement("option");o.id="cmax";m.appendChild(o)}o.value=String(n);o.textContent="حتى "+n.toLocaleString("ar-DZ")+" دج";m.value=String(n)}
+function setMax(n){$("maxp").value=n?String(n):""}
 function nz(s){return String(s).replace(/[\u064B-\u0652\u0640]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[٠-٩]/g,function(d){return"٠١٢٣٤٥٦٧٨٩".indexOf(d)}).toLowerCase()}
 var CATKW={"سيارات":"سياره سيارات فولكس رونو بيجو كيا هيونداي شاحنه شاحنات موتو سكوتر ديزل voiture","عقارات":"شقه شقق فيلا منزل ارض محل عقار كراء ستوديو appartement villa","هواتف":"هاتف هواتف تلفون تيليفون ايفون سامسونغ سامسونج شاومي ريدمي","إلكترونيات":"حاسوب لابتوب كمبيوتر تلفاز شاشه بلايستيشن كاميرا طابعه","أثاث":"اثاث سرير خزانه اريكه كنبه طاوله مطبخ","وظائف":"وظيفه توظيف مطلوب سائق","خدمات":"خدمه خدمات تصليح تنظيف سباك كهربائي دروس"};
 var STOP="نحوس نبغي نبي ابحث ابغي اريد ابي ندور عن في من الي الى علي علا اقل اكثر تحت فوق حتي دج دينار رخيص رخيصه جديد مستعمل بسعر سعر و او مع ب ل".split(" ");
