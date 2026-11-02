@@ -170,7 +170,7 @@ footer{padding:30px 0;color:var(--mute);font-size:13px;text-align:center}
   <button class="btn ghost" type="button" id="forgot">نسيت كلمة السر؟</button><button class="btn ghost" type="button" id="authCancel">إلغاء</button>
 </form></dialog>
 <dialog id="cartDlg"></dialog>
-<dialog id="profDlg"></dialog><dialog id="xDlg"></dialog>
+<nav class="wrap" aria-label="الفئات" style="padding:22px 14px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px"><a href="cars.html" style="color:var(--mute)">سيارات للبيع</a><a href="real-estate.html" style="color:var(--mute)">عقارات للبيع والكراء</a><a href="phones.html" style="color:var(--mute)">هواتف للبيع</a><a href="electronics.html" style="color:var(--mute)">إلكترونيات للبيع</a><a href="furniture.html" style="color:var(--mute)">أثاث للبيع</a><a href="jobs.html" style="color:var(--mute)">وظائف في الجزائر</a><a href="services.html" style="color:var(--mute)">خدمات في الجزائر</a></nav><dialog id="profDlg"></dialog><dialog id="xDlg"></dialog>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -330,7 +330,7 @@ function applySite(d){d=d||{};var h=document.querySelector(".hero"),r=document.d
 if(hx.test(d.c1||""))r.setProperty("--hero1",d.c1);else r.removeProperty("--hero1");
 if(hx.test(d.c2||""))r.setProperty("--hero2",d.c2);else r.removeProperty("--hero2");
 if(/^https:\/\/[^"')\s]+$/.test(d.img||"")){h.style.backgroundImage='linear-gradient(rgba(4,16,48,.35),rgba(4,16,48,.7)),url("'+d.img+'")';h.style.backgroundSize="cover";h.style.backgroundPosition="center"}else h.style.backgroundImage="";
-document.querySelector(".mid h1").textContent=d.t||T0;document.querySelector(".mid p").textContent=d.s||S0}
+if(!window.CATPAGE){document.querySelector(".mid h1").textContent=d.t||T0;document.querySelector(".mid p").textContent=d.s||S0}}
 try{SITE=JSON.parse(localStorage.getItem("dz_site")||"{}")}catch(e){}applySite(SITE);
 sb.from("site_settings").select("data").eq("id",1).maybeSingle().then(function(r){if(r.data){SITE=r.data.data||{};applySite(SITE);try{localStorage.setItem("dz_site",JSON.stringify(SITE))}catch(e){}}});
 async function chkAdm(){var b=$("admBtn");if(!b){b=document.createElement("button");b.id="admBtn";b.className="btn";b.textContent="⚙️";b.setAttribute("aria-label","لوحة التحكم");b.style.cssText="position:fixed;bottom:16px;left:16px;z-index:50;padding:12px 14px";b.hidden=true;b.onclick=admPanel;document.body.appendChild(b)}
@@ -520,10 +520,19 @@ function setLang(l){LANG=l;try{localStorage.setItem("dz_lang",l)}catch(e){}var h
 new MutationObserver(function(ms){if(LANG!=="fr")return;ms.forEach(function(m){if(m.type==="characterData")px(m.target);else m.addedNodes.forEach(function(n){if(n.nodeType===3||n.nodeType===1)walk(n)})})}).observe(document.body,{childList:true,subtree:true,characterData:true});
 $("langBtn").onclick=function(){setLang(LANG==="fr"?"ar":"fr")};
 try{if(localStorage.getItem("dz_lang")==="fr")setLang("fr")}catch(e){}
+Object.assign(D,{"التقييمات":"Avis","أرسل التقييم":"Envoyer l'avis","سجّل الدخول لتقييم البائع":"Connectez-vous pour noter le vendeur","اكتب تعليقاً (اختياري)":"Commentaire (facultatif)","تم حفظ تقييمك":"Avis enregistré","تعذر حفظ التقييم":"Échec de l'enregistrement de l'avis","لا توجد تقييمات بعد.":"Aucun avis pour l'instant.","سيارات للبيع":"Voitures à vendre","عقارات":"Immobilier","هواتف للبيع":"Téléphones à vendre","إلكترونيات للبيع":"Électronique à vendre","أثاث للبيع":"Meubles à vendre","وظائف في الجزائر":"Emplois en Algérie","خدمات في الجزائر":"Services en Algérie","عقارات للبيع والكراء":"Immobilier à vendre et à louer"});
+var RAT={};
+async function loadRat(ids){var r=await sb.from("reviews").select("seller_id,stars").in("seller_id",ids);RAT={};(r.data||[]).forEach(function(x){var o=RAT[x.seller_id]||(RAT[x.seller_id]={n:0,s:0});o.n++;o.s+=x.stars})}
+function ratS(u){var o=RAT[u];return o?"★ "+(o.s/o.n).toFixed(1)+" ("+o.n+")":""}
+async function revBox(uid){var d=$("xDlg").firstChild,r=await sb.from("reviews").select("*").eq("seller_id",uid).order("created_at",{ascending:false}).limit(30),L=r.data||[],ids=L.map(function(x){return x.reviewer_id}),
+pr=ids.length?((await sb.from("profiles").select("id,name").in("id",ids)).data||[]):[],mine=user&&L.filter(function(x){return x.reviewer_id===user.id})[0],sum=0;L.forEach(function(x){sum+=x.stars});
+var h='<h3 style="margin:8px 0 0">التقييمات'+(L.length?" ★ "+(sum/L.length).toFixed(1)+" ("+L.length+")":"")+'</h3>'+(L.length?L.map(function(x){var p=pr.filter(function(q){return q.id===x.reviewer_id})[0];return'<div class="li"><div><div class="title">'+"★".repeat(x.stars)+"☆".repeat(5-x.stars)+" "+esc((p&&p.name)||"مستخدم")+'</div>'+(x.comment?'<div class="meta">'+esc(x.comment)+'</div>':"")+'</div></div>'}).join(""):'<p class="meta">لا توجد تقييمات بعد.</p>');
+if(!user)h+='<p class="meta">سجّل الدخول لتقييم البائع</p>';else if(user.id!==uid)h+='<select id="rvS">'+[5,4,3,2,1].map(function(n){return'<option value="'+n+'"'+(mine&&mine.stars===n?" selected":"")+'>'+"★".repeat(n)+"☆".repeat(5-n)+'</option>'}).join("")+'</select><input id="rvC" maxlength="300" placeholder="اكتب تعليقاً (اختياري)" value="'+esc(mine&&mine.comment||"")+'"><button class="btn" id="rvB" type="button">أرسل التقييم</button>';
+d.lastElementChild.insertAdjacentHTML("beforebegin",h);var b=$("rvB");if(b)b.onclick=async function(){b.disabled=true;var q=await sb.from("reviews").upsert({seller_id:uid,stars:+$("rvS").value,comment:$("rvC").value.trim()||null},{onConflict:"seller_id,reviewer_id"});if(q.error){toast("تعذر حفظ التقييم",3000);b.disabled=false;return}toast("تم حفظ تقييمك");await loadPrf();sellerPage(uid)}}
 var PB0,PRF={};
 function hdrAv(){var b=$("profBtn");if(PB0===undefined)PB0=b.innerHTML;if(!user){b.innerHTML=PB0;return}var m=user.user_metadata||{};
 b.innerHTML='<span class="hav">'+(m.avatar?'<img src="'+esc(m.avatar)+'" alt="">':esc((m.name||user.email||"؟").trim().charAt(0)))+'</span><span class="dot" id="dot"></span>'}
-async function loadPrf(){var ids=[];ADS.forEach(function(a){if(a.uid&&ids.indexOf(a.uid)<0)ids.push(a.uid)});if(!ids.length)return;var r=await sb.from("profiles").select("id,name,avatar").in("id",ids);(r.data||[]).forEach(function(x){PRF[x.id]=x})}
+async function loadPrf(){var ids=[];ADS.forEach(function(a){if(a.uid&&ids.indexOf(a.uid)<0)ids.push(a.uid)});if(!ids.length)return;var r=await sb.from("profiles").select("id,name,avatar").in("id",ids);(r.data||[]).forEach(function(x){PRF[x.id]=x});await loadRat(ids)}
 var blk=[],CH=null,find=function(id){return ADS.filter(function(a){return String(a.id)===String(id)})[0]};
 function mode(){return(user&&(user.user_metadata||{}).mode)||"seller"}
 function disc(a){return a.oldp>a.p&&a.p>0&&a.dat&&Date.now()-new Date(a.dat)<6048e5}
@@ -534,7 +543,7 @@ async function syncProf(){hdrAv();if(!user)return;var m=user.user_metadata||{};a
 async function unread(){if(!user){$("msgN").hidden=true;return}var r=await sb.from("messages").select("id",{count:"exact",head:true}).eq("receiver_id",user.id).eq("read",false),n=r.count||0;$("msgN").hidden=!n;$("msgN").textContent=n}
 function xb(a){var so=a.so?'<p class="meta" style="color:var(--fav);margin:0">⛔ نفدت الكمية</p>':"";
 if(user&&user.id===a.uid)return so+'<div class="row"><button class="btn" data-ed="'+a.id+'">تعديل الإعلان</button></div>';
-return so+'<div class="row"><button class="btn ghost" data-sel="'+a.uid+'"><span class="hav" style="width:26px;height:26px;font-size:13px;display:inline-grid;vertical-align:middle;margin-inline-end:6px">'+((PRF[a.uid]||{}).avatar?'<img src="'+esc(PRF[a.uid].avatar)+'" alt="">':esc(((PRF[a.uid]||{}).name||"؟").charAt(0)))+'</span>'+esc((PRF[a.uid]||{}).name||"صفحة البائع")+'</button><button class="btn a-call" data-msg="'+a.id+'">راسل البائع</button></div>'}
+return so+'<div class="row"><button class="btn ghost" data-sel="'+a.uid+'"><span class="hav" style="width:26px;height:26px;font-size:13px;display:inline-grid;vertical-align:middle;margin-inline-end:6px">'+((PRF[a.uid]||{}).avatar?'<img src="'+esc(PRF[a.uid].avatar)+'" alt="">':esc(((PRF[a.uid]||{}).name||"؟").charAt(0)))+'</span>'+esc((PRF[a.uid]||{}).name||"صفحة البائع")+(ratS(a.uid)?" "+ratS(a.uid):"")+'</button><button class="btn a-call" data-msg="'+a.id+'">راسل البائع</button></div>'}
 function editAd(id){var a=find(id);X('<h2 style="margin:0">تعديل الإعلان</h2><label>الاسم<input id="eT" maxlength="70" value="'+esc(a.t)+'"></label><label>السعر بالدينار<input id="eP" type="number" min="0" value="'+(a.p||"")+'"></label><label><input type="checkbox" id="eS" style="width:auto"'+(a.so?" checked":"")+'> نفدت الكمية</label><p class="meta" style="margin:0">عند تخفيض السعر يظهر إعلانك في «تخفيضات الأسبوع» لمدة 7 أيام.</p><div class="row"><button class="btn" data-esave="'+a.id+'">حفظ</button><button class="btn ghost" data-xc>إغلاق</button></div>')}
 async function saveEd(id){var a=find(id),np=+$("eP").value||null,u={title:$("eT").value.trim()||a.t,price:np,sold_out:$("eS").checked};
 if(np&&a.p&&np<a.p){u.old_price=disc(a)?a.oldp:a.p;u.discounted_at=new Date().toISOString()}else if(np>a.p){u.old_price=null;u.discounted_at=null}
@@ -542,7 +551,7 @@ var r=await sb.from("ads").update(u).eq("id",id);if(r.error){toast("تعذر ا�
 async function sellerPage(uid){var p=(await sb.from("profiles").select("*").eq("id",uid).maybeSingle()).data||{},l=ADS.filter(function(a){return a.uid===uid}),me=user&&user.id===uid;
 X('<div style="display:flex;gap:12px;align-items:center"><div class="av">'+(p.avatar?'<img src="'+esc(p.avatar)+'" alt="">':esc((p.name||"؟").charAt(0)))+'</div><div><div class="title">'+esc(p.name||"بائع")+'</div><div class="meta">'+esc(p.wilaya||"")+" · "+l.length+' إعلان</div></div></div>'+
 l.map(function(a){return'<div class="li"><div><div class="title">'+esc(a.t)+'</div><div class="meta">'+priceH(a)+(a.so?" · نفدت":"")+'</div></div><button class="btn ghost" data-ad="'+a.id+'">عرض</button></div>'}).join("")+
-(me||!l.length?"":'<div class="row"><button class="btn a-call" data-msg="'+l[0].id+'">راسل</button><button class="btn ghost" data-blk="'+uid+'">'+(blk.indexOf(uid)>-1?"إلغاء الحظر":"حظر البائع")+'</button></div>')+'<button class="btn ghost" data-xc>إغلاق</button>')}
+(me||!l.length?"":'<div class="row"><button class="btn a-call" data-msg="'+l[0].id+'">راسل</button><button class="btn ghost" data-blk="'+uid+'">'+(blk.indexOf(uid)>-1?"إلغاء الحظر":"حظر البائع")+'</button></div>')+'<button class="btn ghost" data-xc>إغلاق</button>');revBox(uid)}
 function startMsg(id){if(!user){$("authDlg").showModal();toast("سجّل الدخول أولاً",2500);return}var a=find(id);if(!a||a.uid===user.id)return;chat(a.id,a.uid)}
 async function chat(ad,o){CH={ad:ad,o:o};var a=find(ad);
 X('<h2 style="margin:0;font-size:18px">'+esc(a?a.t:"محادثة")+'</h2><div id="msgs" style="max-height:48vh;overflow:auto"></div><div class="row"><input id="mIn" maxlength="1000" placeholder="اكتب رسالتك..." style="flex:3"><button class="btn" data-send>إرسال</button></div><div class="row"><button class="btn ghost" data-inbox>الرسائل</button><button class="btn ghost" data-blk="'+o+'">'+(blk.indexOf(o)>-1?"إلغاء الحظر":"حظر")+'</button><button class="btn ghost" data-xc>إغلاق</button></div>');chatMsgs()}
@@ -562,6 +571,7 @@ else if("send" in d)sendMsg();else if("inbox" in d)inbox();else if(d.chat){var p
 $("dlg").addEventListener("click",function(e){var t=e.target.closest("button");if(!t)return;var d=t.dataset;if(d.ed)editAd(d.ed);else if(d.sel)sellerPage(d.sel);else if(d.msg)startMsg(d.msg)});
 $("msgBtn").onclick=function(){if(user)inbox();else $("authDlg").showModal()};
 setInterval(function(){unread();if(CH&&$("xDlg").open&&$("msgs"))chatMsgs()},12000);
+if(window.CATPAGE)S.cat=window.CATPAGE;
 cartSave();
 render();load();
 </script>
