@@ -234,7 +234,7 @@ $("wil").onchange=function(){S.w=this.value;render()};
 $("maxp").oninput=function(){S.max=parseInt(String(this.value).replace(/\D/g,""),10)||0;render()};
 $("sort").onchange=function(){S.sort=this.value;render()};
 $("favOnly").onclick=function(){S.favOnly=!S.favOnly;render()};
-function setUser(s){user=s?s.user:null;hdrAv();$("dot").hidden=!user;loadBlk();syncProf();unread();if(!user&&$("profDlg").open)$("profDlg").close()}
+function setUser(s){user=s?s.user:null;hdrAv();$("dot").hidden=!user;loadBlk();syncProf();unread();chkAdm();if(!user&&$("profDlg").open)$("profDlg").close()}
 sb.auth.getSession().then(function(r){setUser(r.data.session)});
 sb.auth.onAuthStateChange(function(_e,s){setUser(s);if(_e==="PASSWORD_RECOVERY")setTimeout(newPw,300)});
 function newPw(){X('<h2 style="margin:0">كلمة سر جديدة</h2><label>اكتب كلمة السر الجديدة (6 أحرف على الأقل)<input id="npw" type="password" minlength="6" autocomplete="new-password"></label><div class="row"><button class="btn" type="button" id="npB">حفظ</button></div>');
@@ -325,6 +325,22 @@ var blob=await new Promise(function(ok){c.toBlob(ok,"image/jpeg",.85)}),path=use
 var up=await sb.storage.from("ad-images").upload(path,blob,{contentType:"image/jpeg"});if(up.error)throw up.error;
 var url=sb.storage.from("ad-images").getPublicUrl(path).data.publicUrl,r=await sb.auth.updateUser({data:{avatar:url}});if(r.error)throw r.error;
 user=r.data.user;syncProf();toast("تم تغيير الصورة");showProf()}catch(x){toast("تعذر رفع الصورة",3000)}};
+var SITE={},T0=document.querySelector(".mid h1").textContent,S0=document.querySelector(".mid p").textContent;
+function applySite(d){d=d||{};var h=document.querySelector(".hero"),r=document.documentElement.style,hx=/^#[0-9a-f]{6}$/i;
+if(hx.test(d.c1||""))r.setProperty("--hero1",d.c1);else r.removeProperty("--hero1");
+if(hx.test(d.c2||""))r.setProperty("--hero2",d.c2);else r.removeProperty("--hero2");
+if(/^https:\/\/[^"')\s]+$/.test(d.img||"")){h.style.backgroundImage='linear-gradient(rgba(4,16,48,.35),rgba(4,16,48,.7)),url("'+d.img+'")';h.style.backgroundSize="cover";h.style.backgroundPosition="center"}else h.style.backgroundImage="";
+document.querySelector(".mid h1").textContent=d.t||T0;document.querySelector(".mid p").textContent=d.s||S0}
+try{SITE=JSON.parse(localStorage.getItem("dz_site")||"{}")}catch(e){}applySite(SITE);
+sb.from("site_settings").select("data").eq("id",1).maybeSingle().then(function(r){if(r.data){SITE=r.data.data||{};applySite(SITE);try{localStorage.setItem("dz_site",JSON.stringify(SITE))}catch(e){}}});
+async function chkAdm(){var b=$("admBtn");if(!b){b=document.createElement("button");b.id="admBtn";b.className="btn";b.textContent="⚙️";b.setAttribute("aria-label","لوحة التحكم");b.style.cssText="position:fixed;bottom:16px;left:16px;z-index:50;padding:12px 14px";b.hidden=true;b.onclick=admPanel;document.body.appendChild(b)}
+if(!user){b.hidden=true;return}var r=await sb.from("admins").select("user_id").eq("user_id",user.id).maybeSingle();b.hidden=!r.data}
+function admPanel(){var d=SITE;X('<h2 style="margin:0">لوحة التحكم</h2><label>العنوان الرئيسي<input id="aT" maxlength="60" value="'+esc(d.t||T0)+'"></label><label>الوصف تحته<input id="aS" maxlength="120" value="'+esc(d.s||S0)+'"></label><label>لون الخلفية (أعلى)<input id="aC1" type="color" value="'+(d.c1||"#0a2a63")+'"></label><label>لون الخلفية (أسفل)<input id="aC2" type="color" value="'+(d.c2||"#041030")+'"></label><label>صورة خلفية الواجهة<input id="aI" type="file" accept="image/*"></label>'+(d.img?'<p class="meta" style="margin:0">توجد صورة حالية.</p>':"")+'<div class="row"><button class="btn" id="admSave" type="button">حفظ</button><button class="btn ghost" id="admImg" type="button">إزالة الصورة</button></div><div class="row"><button class="btn ghost" id="admRst" type="button">إعادة الضبط</button><button class="btn ghost" data-xc>إغلاق</button></div>');
+$("admSave").onclick=function(){admSave(false)};$("admImg").onclick=function(){admSave("noimg")};$("admRst").onclick=function(){admSave("reset")}}
+async function admSave(m){var b=$("admSave");b.disabled=true;try{var d;if(m==="reset")d={};else{d=Object.assign({},SITE,{t:$("aT").value.trim(),s:$("aS").value.trim(),c1:$("aC1").value,c2:$("aC2").value});
+if(m==="noimg")delete d.img;var f=$("aI").files[0];if(f&&!m){var bm=await createImageBitmap(f),k=Math.min(1,1600/bm.width),c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);
+var blob=await new Promise(function(ok){c.toBlob(ok,"image/jpeg",.8)}),p=user.id+"/hero-"+Date.now()+".jpg",up=await sb.storage.from("ad-images").upload(p,blob,{contentType:"image/jpeg"});if(up.error)throw up.error;d.img=sb.storage.from("ad-images").getPublicUrl(p).data.publicUrl}}
+var r=await sb.from("site_settings").upsert({id:1,data:d});if(r.error)throw r.error;SITE=d;try{localStorage.setItem("dz_site",JSON.stringify(d))}catch(e){}applySite(d);$("xDlg").close();toast("تم تحديث الموقع")}catch(x){toast("تعذر الحفظ: "+(x.message||"خطأ"),4000);b.disabled=false}}
 var PB0,PRF={};
 function hdrAv(){var b=$("profBtn");if(PB0===undefined)PB0=b.innerHTML;if(!user){b.innerHTML=PB0;return}var m=user.user_metadata||{};
 b.innerHTML='<span class="hav">'+(m.avatar?'<img src="'+esc(m.avatar)+'" alt="">':esc((m.name||user.email||"؟").trim().charAt(0)))+'</span><span class="dot" id="dot"></span>'}
