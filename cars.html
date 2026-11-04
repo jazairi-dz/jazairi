@@ -71,7 +71,7 @@ h2{font:400 24px "Reem Kufi",Tajawal,sans-serif;margin:20px 0 10px}
 .fav[aria-pressed="true"]{color:var(--fav);background:#fff}
 .tag{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#f7cf6a,#e59f1a);color:#2a1a00;border-radius:8px;font-size:12px;font-weight:800;padding:1px 10px;z-index:1}
 .hscroll{display:flex;gap:16px;overflow-x:auto;padding:4px 2px 12px}
-.hscroll .card{flex:none;width:230px}
+.hscroll .card{flex:none;width:230px;scroll-snap-align:start}.hscroll{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.ft{background:#041030;color:#cdd8f0;margin-top:30px;padding:26px 0 14px;text-align:start}.ftg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px}.ft h3{font:400 20px "Reem Kufi",Tajawal,sans-serif;color:#f0b84b;margin:0 0 8px}.ft a:not(.btn){display:block;color:#cdd8f0;padding:3px 0;font-size:14px}.ft p{margin:0;font-size:14px}.ftc{text-align:center;margin-top:18px!important;opacity:.7}.rh{display:flex;justify-content:space-between;align-items:center}.cc{flex:none;width:104px;height:104px;border-radius:18px;background:var(--card);border:1px solid var(--line);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:700 14px Tajawal,sans-serif;cursor:pointer;scroll-snap-align:start}.cc span{font-size:38px}.cc:hover{border-color:var(--gold2)}
 .empty{padding:30px 10px;text-align:center;color:var(--mute)}
 dialog{border:1px solid var(--gold2);border-radius:20px;padding:0;width:min(520px,94vw);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(2,8,24,.7);backdrop-filter:blur(4px)}
@@ -135,14 +135,14 @@ footer{padding:30px 0;color:var(--mute);font-size:13px;text-align:center}
 <main class="wrap">
   <div class="chips" id="chips" role="group" aria-label="التصنيفات"></div>
   <section id="featWrap"><h2>إعلانات مميزة</h2><div class="hscroll" id="feat"></div></section>
-  <div class="bar"><span id="count"></span>
+  <div id="rows"></div><div class="bar"><span id="count"></span>
     <label>ترتيب: <select id="sort"><option value="new">الأحدث</option><option value="low">الأرخص</option><option value="high">الأغلى</option></select></label>
   </div>
   <div class="grid" id="list"></div>
   <p class="empty" id="empty" hidden>لا توجد نتائج. جرّب ولاية أخرى أو أزل الفلاتر.</p>
   <div style="text-align:center;margin:16px 0"><button class="btn ghost" id="favOnly" aria-pressed="false">♥ المفضلة فقط</button></div>
 </main>
-<footer>جزائري — بيع واشترِ في كل ولايات الجزائر</footer>
+<footer class="ft"><div class="wrap ftg"><div><h3>جزائري</h3><p>سوق إعلانات مبوبة جزائري: بع واشترِ في كل ولايات الجزائر.</p></div><div><h3>الأقسام</h3><a href="cars.html" style="color:var(--mute)">سيارات للبيع</a><a href="real-estate.html" style="color:var(--mute)">عقارات للبيع والكراء</a><a href="phones.html" style="color:var(--mute)">هواتف للبيع</a><a href="electronics.html" style="color:var(--mute)">إلكترونيات للبيع</a><a href="furniture.html" style="color:var(--mute)">أثاث للبيع</a><a href="jobs.html" style="color:var(--mute)">وظائف في الجزائر</a><a href="services.html" style="color:var(--mute)">خدمات في الجزائر</a></div><div><h3>تابعنا</h3><a class="btn" href="https://t.me/the_famous_dz" target="_blank" rel="noopener noreferrer">✈️ قناتنا على تلغرام</a></div></div><p class="ftc">© جزائري</p></footer>
 
 <dialog id="dlg"></dialog>
 <dialog id="addDlg"><form class="dlg" id="form">
@@ -170,7 +170,7 @@ footer{padding:30px 0;color:var(--mute);font-size:13px;text-align:center}
   <button class="btn ghost" type="button" id="forgot">نسيت كلمة السر؟</button><button class="btn ghost" type="button" id="authCancel">إلغاء</button>
 </form></dialog>
 <dialog id="cartDlg"></dialog>
-<nav class="wrap" aria-label="الفئات" style="padding:22px 14px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px"><a href="cars.html" style="color:var(--mute)">سيارات للبيع</a><a href="real-estate.html" style="color:var(--mute)">عقارات للبيع والكراء</a><a href="phones.html" style="color:var(--mute)">هواتف للبيع</a><a href="electronics.html" style="color:var(--mute)">إلكترونيات للبيع</a><a href="furniture.html" style="color:var(--mute)">أثاث للبيع</a><a href="jobs.html" style="color:var(--mute)">وظائف في الجزائر</a><a href="services.html" style="color:var(--mute)">خدمات في الجزائر</a></nav><dialog id="profDlg"></dialog><dialog id="xDlg"></dialog>
+<dialog id="profDlg"></dialog><dialog id="xDlg"></dialog>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -202,7 +202,7 @@ function render(){chips();
 var q=S.q.trim(),tk=nz(q).split(/\s+/).filter(Boolean),r=ADS.filter(function(a){return blk.indexOf(a.uid)<0&&(!S.disc||disc(a))&&(!S.cat||a.c===S.cat)&&(!S.w||a.w===S.w)&&(!S.max||(a.p&&a.p<=S.max))&&(!S.favOnly||favs.indexOf(a.id)>-1)&&(!tk.length||tk.every(function(w){return nz(a.t+" "+a.d+" "+a.c).indexOf(w)>-1}))});
 var s=S.sort;r.sort(function(a,b){return s==="low"?(a.p||9e15)-(b.p||9e15):s==="high"?b.p-a.p:a.age-b.age});
 $("list").innerHTML=r.map(card).join("");$("empty").hidden=r.length>0;$("empty").textContent=ADS.length?"لا توجد نتائج. جرّب ولاية أخرى أو أزل الفلاتر.":"لا توجد إعلانات بعد. كن أول من ينشر إعلاناً!";$("count").textContent=r.length+" إعلان";
-var f=ADS.filter(function(a){return a.f});$("featWrap").hidden=!f.length||!!(q||S.cat||S.w||S.favOnly||S.disc);$("feat").innerHTML=f.map(card).join("");
+var f=ADS.filter(function(a){return a.f});$("featWrap").hidden=!f.length||!!(q||S.cat||S.w||S.favOnly||S.disc);$("feat").innerHTML=f.map(card).join("");rowsR(!!(q||S.cat||S.w||S.favOnly||S.disc||S.max));
 $("favOnly").setAttribute("aria-pressed",S.favOnly)}
 function soc(kind,v){v=String(v||"").trim();if(!v)return"";
 var H={facebook:["facebook.com","fb.com","fb.me"],instagram:["instagram.com"],telegram:["t.me","telegram.me"],tiktok:["tiktok.com"]},B={facebook:"https://facebook.com/",instagram:"https://instagram.com/",telegram:"https://t.me/",tiktok:"https://www.tiktok.com/@"};
@@ -529,6 +529,16 @@ pr=ids.length?((await sb.from("profiles").select("id,name").in("id",ids)).data||
 var h='<h3 style="margin:8px 0 0">التقييمات'+(L.length?" ★ "+(sum/L.length).toFixed(1)+" ("+L.length+")":"")+'</h3>'+(L.length?L.map(function(x){var p=pr.filter(function(q){return q.id===x.reviewer_id})[0];return'<div class="li"><div><div class="title">'+"★".repeat(x.stars)+"☆".repeat(5-x.stars)+" "+esc((p&&p.name)||"مستخدم")+'</div>'+(x.comment?'<div class="meta">'+esc(x.comment)+'</div>':"")+'</div></div>'}).join(""):'<p class="meta">لا توجد تقييمات بعد.</p>');
 if(!user)h+='<p class="meta">سجّل الدخول لتقييم البائع</p>';else if(user.id!==uid)h+='<select id="rvS">'+[5,4,3,2,1].map(function(n){return'<option value="'+n+'"'+(mine&&mine.stars===n?" selected":"")+'>'+"★".repeat(n)+"☆".repeat(5-n)+'</option>'}).join("")+'</select><input id="rvC" maxlength="300" placeholder="اكتب تعليقاً (اختياري)" value="'+esc(mine&&mine.comment||"")+'"><button class="btn" id="rvB" type="button">أرسل التقييم</button>';
 d.lastElementChild.insertAdjacentHTML("beforebegin",h);var b=$("rvB");if(b)b.onclick=async function(){b.disabled=true;var q=await sb.from("reviews").upsert({seller_id:uid,stars:+$("rvS").value,comment:$("rvC").value.trim()||null},{onConflict:"seller_id,reviewer_id"});if(q.error){toast("تعذر حفظ التقييم",3000);b.disabled=false;return}toast("تم حفظ تقييمك");await loadPrf();sellerPage(uid)}}
+Object.assign(D,{"سوق إعلانات مبوبة جزائري: بع واشترِ في كل ولايات الجزائر.":"Petites annonces algériennes : vendez et achetez dans toutes les wilayas.","تابعنا":"Suivez-nous","✈️ قناتنا على تلغرام":"✈️ Notre chaîne Telegram","© جزائري":"© Jazairi","إعلاناتك":"Vos annonces","الأقسام":"Rubriques","عرض الكل ›":"Voir tout ›"});
+function rowsR(hide){var el=$("rows");el.hidden=hide;if(hide){el.innerHTML="";return}
+var V=ADS.filter(function(a){return blk.indexOf(a.uid)<0}),h="",
+row=function(e,t,l,x){return l.length?'<section><div class="rh"><h2><span>'+e+'</span> '+t+'</h2>'+(x||"")+'</div><div class="hscroll">'+l.map(card).join("")+'</div></section>':""};
+h+='<section><h2>الأقسام</h2><div class="hscroll">'+Object.keys(CATS).map(function(c){return'<button class="cc" data-c="'+c+'" type="button"><span>'+CATS[c][0]+'</span>'+c+'</button>'}).join("")+'</div></section>';
+h+=row("👤","إعلاناتك",user?V.filter(function(a){return a.uid===user.id}):[]);
+h+=row("🔥","تخفيضات الأسبوع",V.filter(disc),'<button class="btn ghost" data-d="1" type="button">عرض الكل ›</button>');
+h+=row("🆕","أحدث الإعلانات",V.slice(0,12));
+Object.keys(CATS).forEach(function(c){h+=row(CATS[c][0],c,V.filter(function(a){return a.c===c}).slice(0,12),'<button class="btn ghost" data-c="'+c+'" type="button">عرض الكل ›</button>')});
+el.innerHTML=h}
 var PB0,PRF={};
 function hdrAv(){var b=$("profBtn");if(PB0===undefined)PB0=b.innerHTML;if(!user){b.innerHTML=PB0;return}var m=user.user_metadata||{};
 b.innerHTML='<span class="hav">'+(m.avatar?'<img src="'+esc(m.avatar)+'" alt="">':esc((m.name||user.email||"؟").trim().charAt(0)))+'</span><span class="dot" id="dot"></span>'}
